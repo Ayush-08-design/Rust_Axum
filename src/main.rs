@@ -1,13 +1,16 @@
-use axum::{routing::get , Router , extract::{Path} , response::Json};
-use serde_json::{Value, json};
+use crate::state::AppState;
+mod models;
+mod state;
+mod routes;
+mod handlers;
 
 #[tokio::main]
 async fn main() {
 
     // Axum's Router maps HTTP methods and paths to handler functions:
-    let app = Router::new()
-    .route("/" , get(root))
-    .route("/json/{value}", get(json));
+    let state = AppState::new();
+
+    let app = routes::app(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
     .await.unwrap();
@@ -15,11 +18,4 @@ async fn main() {
 
     axum::serve(listener, app).await.unwrap();
 
-    async fn root() -> &'static str{
-        "Heyyyyy World"
-    }
-
-    async fn json(Path(value): Path<u32>) -> Json<Value> {
-        Json(json!({ "data": value }))
-    }
 }
